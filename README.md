@@ -19,6 +19,13 @@ Before you begin, ensure you have the following:
 
 ## Example
 
+Enter a Website URL: https://www.artificialintelligence-news.com
+Describe what you want to parse: give me the relevant AI news and organize it in a table
+
+![Scraped Content Example](assets/example-scraped-content-1.png)
+
+## Other Example
+
 ![Scraped Content Example](assets/example-scraped-content.png)
 
 
