@@ -1,12 +1,15 @@
 import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager  # Automatically download the correct ChromeDriver
 from bs4 import BeautifulSoup
 from datetime import datetime
-from database import store_in_dynamodb 
+from database import store_in_dynamodb  # Assuming you have this function to store data in DynamoDB
 
 API_URL = "https://m29oncz02i.execute-api.us-east-1.amazonaws.com/prod/articles/"  # FastAPI endpoint to fetch articles
 
+# Function to fetch scraped data from API (to check if data is already scraped)
 def get_scraped_data(url):
     try:
         # Send GET request to the API to fetch data
@@ -23,6 +26,7 @@ def get_scraped_data(url):
         print(f"An error occurred: {e}")
         return None
 
+# Main scraping function
 def scrape_website(website):
     # Check if the website is already scraped via the API
     existing_content = get_scraped_data(website)
@@ -30,10 +34,15 @@ def scrape_website(website):
         print(f"Using cached data for {website}")
         return existing_content
 
-    print("Launching Chrome browser...")
-    chrome_driver_path = "./chromedriver"
-    options = webdriver.ChromeOptions()
-    driver = webdriver.Chrome(service=Service(chrome_driver_path), options=options)
+    print("Launching Chrome browser in headless mode...")
+    options = Options()
+    options.add_argument("--headless")  # Run Chrome in headless mode
+    options.add_argument("--no-sandbox")  # Bypass OS-level security
+    options.add_argument("--disable-dev-shm-usage")  # Prevent memory issues
+    options.add_argument("--remote-debugging-port=9222")  # Set debugging port
+
+    # Use webdriver_manager to automatically download ChromeDriver
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
     try:
         driver.get(website)
@@ -48,8 +57,10 @@ def scrape_website(website):
         published_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Set current time as published date (or extract it from the page)
         content = str(soup.body)  # Extract body content (can be cleaned or processed as needed)
 
+        # Store the scraped content in DynamoDB
         store_in_dynamodb(title, website, published_date, content)  # Save to DB via the API
 
+        # Extract and clean the body content
         body_content = extract_body_content(html)
         cleaned_content = clean_body_content(body_content)
         return cleaned_content
@@ -77,9 +88,11 @@ def extract_body_content(html_content):
 def clean_body_content(body_content):
     soup = BeautifulSoup(body_content, "html.parser")
 
+    # Remove scripts and styles
     for script_or_style in soup(["script", "style"]):
         script_or_style.extract()
 
+    # Get cleaned text
     cleaned_content = soup.get_text(separator="\n")
     cleaned_content = "\n".join(
         line.strip() for line in cleaned_content.splitlines() if line.strip()
