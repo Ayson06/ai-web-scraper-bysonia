@@ -9,6 +9,25 @@ from database import store_in_dynamodb
 
 API_URL = "https://m29oncz02i.execute-api.us-east-1.amazonaws.com/prod/articles/"
 
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+
+def get_driver():
+    options = webdriver.ChromeOptions()
+    options.add_argument("--headless")  
+    options.add_argument("--no-sandbox")  
+    options.add_argument("--disable-dev-shm-usage")  
+
+    # Explicitly set the Chrome binary path
+    options.binary_location = "/usr/bin/google-chrome"
+
+    # Set up ChromeDriver
+    service = Service("/usr/bin/chromedriver")  
+    driver = webdriver.Chrome(service=service, options=options)
+    return driver
+
+
 def get_scraped_data(url):
     try:
         response = requests.get(f"{API_URL}?url={url}")
