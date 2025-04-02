@@ -2,19 +2,18 @@ import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager  # This helps install the correct driver automatically
+from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 from datetime import datetime
 from database import store_in_dynamodb
+import chromedriver_autoinstaller  # To ensure the correct driver is installed
 
-API_URL = "https://m29oncz02i.execute-api.us-east-1.amazonaws.com/prod/articles/"  # FastAPI endpoint to fetch articles
+API_URL = "https://m29oncz02i.execute-api.us-east-1.amazonaws.com/prod/articles/"
 
 def get_scraped_data(url):
     try:
         # Send GET request to the API to fetch data
         response = requests.get(f"{API_URL}?url={url}")
-        
         if response.status_code == 200:
             article = response.json()
             print("API Response:", article)  # Print the entire response to check its structure
@@ -26,7 +25,6 @@ def get_scraped_data(url):
         print(f"An error occurred: {e}")
         return None
 
-# Function to scrape website content using Selenium
 def scrape_website(website):
     # Check if the website is already scraped via the API
     existing_content = get_scraped_data(website)
@@ -34,14 +32,17 @@ def scrape_website(website):
         print(f"Using cached data for {website}")
         return existing_content
 
-    # Set Chrome options for headless mode
-    print("Launching Chrome browser in headless mode...")
+    print("Launching Chrome browser...")
+
+    # Automatically download the ChromeDriver using chromedriver_autoinstaller
+    chromedriver_autoinstaller.install()
+
     options = Options()
-    options.add_argument("--headless")  # Run Chrome in headless mode
+    options.add_argument("--headless")  # Run Chrome without GUI
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
 
-    # Use WebDriver Manager to automatically manage the ChromeDriver
+    # Start the Chrome WebDriver
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
     try:
@@ -63,7 +64,6 @@ def scrape_website(website):
         # Extract and clean body content from the HTML
         body_content = extract_body_content(html)
         cleaned_content = clean_body_content(body_content)
-        
         return cleaned_content
 
     finally:
