@@ -4,9 +4,9 @@ mangum
 pydantic
 google-generativeai
 streamlit
-requests
 uvicorn
-beautifulsoup4
-webdriver-manager
 langchain-google-genai
-selenium
+requests==2.28.1
+beautifulsoup4==4.11.1
+selenium==4.4.3
+webdriver_manager==3.8.3
