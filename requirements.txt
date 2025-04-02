@@ -7,3 +7,4 @@ streamlit
 requests
 uvicorn
 beautifulsoup4
+langchain-google-genai
