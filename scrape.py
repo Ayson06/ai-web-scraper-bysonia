@@ -1,8 +1,4 @@
 import requests
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager  # Automatically download the correct ChromeDriver
 from bs4 import BeautifulSoup
 from datetime import datetime
 from database import store_in_dynamodb  # Assuming you have this function to store data in DynamoDB
@@ -34,25 +30,18 @@ def scrape_website(website):
         print(f"Using cached data for {website}")
         return existing_content
 
-    print("Launching Chrome browser in headless mode...")
-    options = Options()
-    options.add_argument("--headless")  # Run Chrome in headless mode
-    options.add_argument("--no-sandbox")  # Bypass OS-level security
-    options.add_argument("--disable-dev-shm-usage")  # Prevent memory issues
-    options.add_argument("--remote-debugging-port=9222")  # Set debugging port
-
-    # Use webdriver_manager to automatically download ChromeDriver
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-
+    print("Fetching the website using requests...")
     try:
-        driver.get(website)
-        print("Page loaded...")
-        html = driver.page_source
+        # Send HTTP GET request to fetch the page
+        response = requests.get(website)
+        if response.status_code != 200:
+            print(f"Error fetching page: {response.status_code}")
+            return None
 
         # Extract content using BeautifulSoup
-        soup = BeautifulSoup(html, "html.parser")
+        soup = BeautifulSoup(response.text, "html.parser")
 
-        # For example, extracting title and published date from the meta tags (you can modify this as per your needs)
+        # Extracting title and published date from the meta tags (or use your own extraction logic)
         title = soup.title.string if soup.title else "No title found"
         published_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Set current time as published date (or extract it from the page)
         content = str(soup.body)  # Extract body content (can be cleaned or processed as needed)
@@ -61,13 +50,13 @@ def scrape_website(website):
         store_in_dynamodb(title, website, published_date, content)  # Save to DB via the API
 
         # Extract and clean the body content
-        body_content = extract_body_content(html)
+        body_content = extract_body_content(response.text)
         cleaned_content = clean_body_content(body_content)
         return cleaned_content
 
-    finally:
-        driver.quit()
-
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
 
 # Extract Body Content from HTML
 def extract_body_content(html_content):
@@ -82,7 +71,6 @@ def extract_body_content(html_content):
     
     print("Error: No body content found!")
     return ""
-
 
 # Clean Body Content (remove scripts/styles)
 def clean_body_content(body_content):
