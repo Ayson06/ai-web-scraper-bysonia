@@ -7,5 +7,6 @@ streamlit
 requests
 uvicorn
 beautifulsoup4
+webdriver-manager
 langchain-google-genai
 selenium
