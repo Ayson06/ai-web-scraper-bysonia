@@ -3,13 +3,13 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager  # This helps install the correct driver automatically
 from bs4 import BeautifulSoup
 from datetime import datetime
-from database import store_in_dynamodb  # Assuming you have a custom database module
+from database import store_in_dynamodb
 
 API_URL = "https://m29oncz02i.execute-api.us-east-1.amazonaws.com/prod/articles/"  # FastAPI endpoint to fetch articles
 
-# Function to fetch scraped data from the API (cached data)
 def get_scraped_data(url):
     try:
         # Send GET request to the API to fetch data
@@ -41,8 +41,8 @@ def scrape_website(website):
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
 
-    # Setup for driver
-    driver = webdriver.Chrome(service=Service("/usr/bin/chromedriver"), options=options)
+    # Use WebDriver Manager to automatically manage the ChromeDriver
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
     try:
         driver.get(website)
