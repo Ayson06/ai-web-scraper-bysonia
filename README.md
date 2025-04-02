@@ -17,12 +17,14 @@ Before you begin, ensure you have the following:
 - Python 3.x
 - `pip` for installing Python packages
 
+## Example
+
+![Scraped Content Example](assets/example-scraped-content.png)
+
+
 ### Python Packages
 You can install the required Python packages by running:
 
 ```bash
 pip install -r requirements.txt
 
-## Example
-
-![Scraped Content Example](assets/example-scraped-content.png)
