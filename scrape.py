@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 from database import store_in_dynamodb 
 
-API_URL = "http://127.0.0.1:8000/articles/"  # FastAPI endpoint to fetch articles
+API_URL = "https://m29oncz02i.execute-api.us-east-1.amazonaws.com/prod/articles/"  # FastAPI endpoint to fetch articles
 
 def get_scraped_data(url):
     try:
